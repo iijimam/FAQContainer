@@ -78,7 +78,9 @@ crw--w---- 1 root tty 136, 0 Feb  3 05:27 /dev/pts/0
 ## 変更履歴 ##
 
 - 2021/2/4 Installer.cls
+    
     /csp/user と /csp/documatic　を無効化するメソッドを追記（DisabledURL()）
 
 - 2021/2/4 FAQコンテナ化手順.docx
+    
     Installer.clsの処理追加分の追記（P17　⑨を追加）
