@@ -60,6 +60,7 @@ LogLevel warn
 ```
 
 ログは以下にある
+```
 root@apacheforfaq:/usr/local/apache2/logs# ls /proc/self/fd -l
 total 0
 lrwx------ 1 root root 64 Feb  3 05:26 0 -> /dev/pts/0
@@ -69,6 +70,7 @@ lr-x------ 1 root root 64 Feb  3 05:26 3 -> /proc/338/fd
  
 root@apacheforfaq:/usr/local/apache2/logs# ls -l /dev/pts/0
 crw--w---- 1 root tty 136, 0 Feb  3 05:27 /dev/pts/0
+```
 
 ***
 
