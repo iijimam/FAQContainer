@@ -84,3 +84,7 @@ crw--w---- 1 root tty 136, 0 Feb  3 05:27 /dev/pts/0
 - 2021/2/4 FAQコンテナ化手順.docx
     
     Installer.clsの処理追加分の追記（P17　⑨を追加）
+
+- 2021/2/5 docker-compose.yml
+
+    Apacheコンテナの内部時刻をUTCからJSTに変更（environmentにTZ: JST-9を追加）
