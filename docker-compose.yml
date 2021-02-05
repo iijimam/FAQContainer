@@ -32,6 +32,7 @@ services:
       - 80:80
       - 443:443
     environment:
+      TZ: JST-9
       SERVER_HOST: iris
       SERVER_PORT: 1972
 volumes:
