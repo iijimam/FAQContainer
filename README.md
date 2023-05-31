@@ -127,10 +127,14 @@ do ##class(FAQ.Installer).runInstaller("Global")
 imagesフォルダ一式、downloadsフォルダ一式を手動で以下にコピーする。
 
 - images
+    ```
     sudo copy -r imagesがあるディレクトリ /usr/FAQContainer/config/iris/csp/faq/images
+    ```
 - downloads
+    ```
     sudo copy -r downloadsがあるディレクトリ /usr/FAQContainer/config/iris/csp/faq/downloads
-
+    ```
+    
     トピック19が添付があるので、19を開いて添付が見えてればOK
 
 これで完成！
