@@ -1,0 +1,4 @@
+web/server.*
+faq/source/iris.key
+.vscode/*
+config/*

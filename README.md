@@ -1,90 +1,160 @@
-## Apacheのログを取得する方法 ##
-/usr/local/apache2/logs/access_log　は存在しないので、ホストからとる
+# FAQコンテナ　作成手順
 
-```
-docker logs faq-web 
-```
-これだと過去ログ全部出てしまうので、期間指定できる。
-参考：https://www.memotansu.jp/docker/750/
+Ubuntu20.04にFAQコンテナを作成する手順を説明します。
 
-以下、指定日時以降をとる（指定時間、日程以前もある --until）
-```
-docker logs --since "2021-02-03T15:00:00Z" faq-web
-```
+>iris.keyと証明書ファイルはリポジトリにUpしていません。cloneした後指定の場所に配置してから起動してください。
 
-以下補足：コンテナなので、httpd.confの設定がホストのApacheと違う。
-```
-# ErrorLog: The location of the error log file.
-# If you do not specify an ErrorLog directive within a <VirtualHost>
-# container, error messages relating to that virtual host will be
-# logged here.  If you *do* define an error logfile for a <VirtualHost>
-# container, that host's errors will be logged there and not here.
-#
-ErrorLog /proc/self/fd/2
+## 流れ
 
-#
-# LogLevel: Control the number of messages logged to the error_log.
-# Possible values include: debug, info, notice, warn, error, crit,
-# alert, emerg.
-#
-LogLevel warn
+リポジトリからcloneしたディレクトリにある[docker-composex.yml](/docker-compose.yml)を使ってコンテナをビルド＆開始します。
 
-<IfModule log_config_module>
-    #
-    # The following directives define some format nicknames for use with
-    # a CustomLog directive (see below).
-    #
-    LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
-    LogFormat "%h %l %u %t \"%r\" %>s %b" common
+コンテナはDurable%SYSを利用しているため、一旦コンテナビルド＋開始の状態を作った後で、初期設定（FAQ用ネームスペース設定、メモリの設定などの初期設定）を流す必要があります。
 
-    <IfModule logio_module>
-      # You need to enable mod_logio.c to use %I and %O
-      LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" %I %O" combinedio
-    </IfModule>
+> Durable %SYSの設定で作ったディレクトリがコンテナビルド時には有効とならないため、ビルド後コンテナを開始してから各種設定を行う必要があります。
 
-    #
-    # The location and format of the access logfile (Common Logfile Format).
-    # If you do not define any access logfiles within a <VirtualHost>
-    # container, they will be logged here.  Contrariwise, if you *do*
-    # define per-<VirtualHost> access logfiles, transactions will be
-    # logged therein and *not* in this file.
-    #
-    CustomLog /proc/self/fd/1 common
+コンテナ初回ビルドと開始＋初期設定が終わってから、コードとデータの更新をして、FAQ用コンテナが完成します。
 
-    #
-    # If you prefer a logfile with access, agent, and referer information
-    # (Combined Logfile Format) you can use the following directive.
-    #
-    #CustomLog "logs/access_log" combined
-</IfModule>
-```
+## 事前準備
 
-ログは以下にある
-```
-root@apacheforfaq:/usr/local/apache2/logs# ls /proc/self/fd -l
-total 0
-lrwx------ 1 root root 64 Feb  3 05:26 0 -> /dev/pts/0
-lrwx------ 1 root root 64 Feb  3 05:26 1 -> /dev/pts/0
-lrwx------ 1 root root 64 Feb  3 05:26 2 -> /dev/pts/0
-lr-x------ 1 root root 64 Feb  3 05:26 3 -> /proc/338/fd
- 
-root@apacheforfaq:/usr/local/apache2/logs# ls -l /dev/pts/0
-crw--w---- 1 root tty 136, 0 Feb  3 05:27 /dev/pts/0
-```
+- Ubuntu20.04インストール
+- Dockerインストール
+    > 参考URL:https://qiita.com/nanbuwks/items/0ba1d13b3cd27e5c6426
+- docker-compose インストール
+- git のインストール（プレインストールされていればそれで）
+- git clone このリポジトリ
 
-***
+    ```
+    cd /usr
+    sudo git clone <このリポジトリ>
+    ```
+- 証明書ファイル一式
+
+    server.keyとserver.crtの名称で、[web](/web/)以下に配置します。
+
+    ※コンテナビルド＆開始前に配置できると後からコピーが不要なので簡単です
+
+- IRISイメージをdocker load しておく
+    ```
+    sudo docker load < iris-2023.1.0.229.0-docker.tar.gz
+    ```
+- iris.keyを準備
+    [faq/source](./faq/source/)以下に配置しておきます（コンテナ用キー）
+
+- コードとデータ更新用に使うディレクトリを準備
+
+    ```
+    sudo mkdir -p /usr/FAQsetup/Global/FAQ
+    ```
+    後は、/usr/FAQsetup/Global/FAQ 以下にソース一式を（[https://github.com/Intersystems-jp/isjfaq/tree/master/FAQ](https://github.com/Intersystems-jp/isjfaq/tree/master/FAQ)）配置する(FAQ.incも忘れずに配置すること)
+
+- KB.Setup.cls　が古い
+https://github.com/Intersystems-jp/isjfaq/blob/e3d403bdcb9ca6c53a5d20d20f2261cb3e25a71c/FAQ/KB/Setup.cls#L45
+
+以下の設定にならないといけない
+
+    ```
+    1: 	^Techinfo("AttachedFileName")	=	"Attached"
+    2: 	^Techinfo("AuthenticationMethods")	=	64
+    3: 	^Techinfo("CSPDirectory")	=	"/opt/config/iris/csp/faq/"
+    4: 	^Techinfo("CSPUrl")	=	"/csp/faq"
+    5: 	^Techinfo("ClassFileDir")	=	"FAQ"
+    6: 	^Techinfo("DirectorySeparator")	=	"/"
+    7: 	^Techinfo("ErrorPage")	=	"/csp/faq/FAQ.FAQError.cls"
+    8: 	^Techinfo("FTPDirectory")	=	"/opt/config/iris/csp/faq/downloads"
+    9: 	^Techinfo("GlobalFileName")	=	"TopicD.xml"
+    10: 	^Techinfo("MailSender")	=	"jpnsup@intersystems.com"
+    11: 	^Techinfo("Namespace")	=	"FAQ"
+    12: 	^Techinfo("SMTPServer")	=	"xxx.intersystems.com"
+    13: 	^Techinfo("SetupDirectory")	=	"/usr/FAQsetup"
+    14: 	^Techinfo("StartYear")	=	2003
+    ```
 
 
-## 変更履歴 ##
+## 1. コンテナビルド＆開始
 
-- 2021/2/4 Installer.cls
+コマンド実行などは、FAQContainerディレクトリ（/usr/FAQContainer）に移動した状態で行います。
+
+1. Durable %SYSのディレクトリを用意と、Apacheコンテナ内で使用するshのPermission変更のため、以下シェルを実行します。
     
-    /csp/user と /csp/documatic　を無効化するメソッドを追記（DisabledURL()）
+    ※初回のみ実行
 
-- 2021/2/4 FAQコンテナ化手順.docx
-    
-    Installer.clsの処理追加分の追記（P17　⑨を追加）
+    ```
+    sudo ./setup.sh
+    ```
+2. コンテナをビルドします
 
-- 2021/2/5 docker-compose.yml
+    ```
+    sudo docker-compose build
+    ```
 
-    Apacheコンテナの内部時刻をUTCからJSTに変更（environmentにTZ: JST-9を追加）
+3. コンテナを開始します。
+
+    ```
+    sudo docker-compose up -d
+    ```
+
+ここまでの手順では、まだApacheとIRISは接続できません。
+
+>　この後の初期設定の中で行う、CSPSystemユーザのパスワード変更ができていないため
+
+ここまでの流れが正しく完成していると、https://IPアドレス にアクセスできます。
+
+> web/index.html　をcloneした状態で利用するとリダイレクトしてFAQトップに移動します。
+
+## 2. 初期実行
+
+ネームスペース、データベースの作成などの初期実行を行うため、IRISにログインし、以下Installerクラスを実行します。
+
+```
+sudo docker exec -it faq-iris bash
+iris session iris -U %SYS
+do ##class(ZFAQSetup.Installer).setup()
+```
+
+## 3. コードとデータの更新
+
+通常の更新方法で実行します。
+
+
+```
+sudo docker exec -it faq-iris bash
+iris session IRIS -U FAQ
+do ##class(FAQ.Installer).runInstaller("Global")
+```
+
+## 4. イメージファイル、添付ファイルの移動
+
+imagesフォルダ一式、downloadsフォルダ一式を手動で以下にコピーする。
+
+- images
+    sudo copy -r imagesがあるディレクトリ /usr/FAQContainer/config/iris/csp/faq/images
+- downloads
+    sudo copy -r downloadsがあるディレクトリ /usr/FAQContainer/config/iris/csp/faq/downloads
+
+    トピック19が添付があるので、19を開いて添付が見えてればOK
+
+これで完成！
+https://<ip>/csp/faq/FAQ.FAQTopicSearch2.cls　にアクセスできる予定
+
+## イメージ更新《書きかけ：これではFATALエラーとなる》
+
+IRISのコンテナにログインし、完全停止（iris stop iris）を行ってから、コンテナを破棄、イメージを削除してから、Dockerfileのイメージを書き換えてdocker-compose up -dしたらOK
+
+```
+sudo docker exec -it faq-iris bash
+
+iris stop iris
+
+exit
+
+sudo docker-compose down
+
+IRISコンテナのイメージ削除
+sudo docker rmi 11d8383d1ccc
+
+Dockerfile のイメージを新しいバージョンに変えて保存
+
+sudo docker-compose up -d
+```
+
+

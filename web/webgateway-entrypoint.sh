@@ -8,9 +8,9 @@ touch CSP.log
 
 apacheUser=daemon
 
-chmod 600 CSP.ini
+chmod 777 CSP.ini
 chown $apacheUser CSP.ini
-chmod 600 CSP.log
+chmod 777 CSP.log
 chown $apacheUser CSP.log
 
 configName=${CONFIG_NAME-LOCAL}
