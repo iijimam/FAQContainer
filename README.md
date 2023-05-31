@@ -134,7 +134,7 @@ imagesフォルダ一式、downloadsフォルダ一式を手動で以下にコ�
     トピック19が添付があるので、19を開いて添付が見えてればOK
 
 これで完成！
-https://<ip>/csp/faq/FAQ.FAQTopicSearch2.cls　にアクセスできる予定
+https://webservername or ip address/csp/faq/FAQ.FAQTopicSearch2.cls　にアクセスできる予定
 
 ## イメージ更新《書きかけ：これではFATALエラーとなる》
 
