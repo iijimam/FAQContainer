@@ -1,39 +1,14 @@
-FROM httpd:2.4
+FROM containers.intersystems.com/intersystems/webgateway:2023.1.0.229.0
 
-ARG version=2020.3.0.221.0 
-ARG platform=lnxubuntux64
-ADD WebGateway-${version}-${platform}.tar.gz /tmp/
+COPY webgwfiles /etc/apache2/mods-available/webgwfiles
 
-RUN cd /tmp/WebGateway-${version}-${platform} && \
-    mkdir -p /opt/webgateway/bin  && \
-    mkdir -p /opt/webgateway/apache  && \
-    mkdir -p /opt/webgateway/docs  && \
-    cp -p ${platform}/bin/*CSP* /opt/webgateway/bin && \
-    cp -p ${platform}/bin/*csp* /opt/webgateway/bin && \
-    cp -p ${platform}/bin/shared/cvtcfg /opt/webgateway/bin && \
-    cp -p ${platform}/bin/shared/irisconnect.so /opt/webgateway/bin && \
-    cp -p ${platform}/bin/shared/libssl.so /opt/webgateway/bin && \
-    cp -p ${platform}/bin/shared/libcrypto.so /opt/webgateway/bin && \
-    cp -p ${platform}/bin/libz.so /opt/webgateway/bin && \
-    cp -p install/apache/mod_csp.c /opt/webgateway/apache && \
-    cp -p install/buildver /opt/webgateway/ && \
-    tar -C /opt/webgateway/ -xvf /tmp/WebGateway-${version}-${platform}/install/CSP-IRIS-common.tar && \
-    rm -rf /tmp/WebGateway-${version}-${platform} && \
-    #echo '<'Location "/"'>' >> ${HTTPD_PREFIX}/conf/httpd.conf && \
-    #echo  CSP on  >> ${HTTPD_PREFIX}/conf/httpd.conf && \
-    #echo  SetHandler csp-handler-sa >> ${HTTPD_PREFIX}/conf/httpd.conf && \
-    #echo '<'/Location'>' >> ${HTTPD_PREFIX}/conf/httpd.conf && \
-    echo LoadModule csp_module_sa /opt/webgateway/bin/CSPa24.so >> ${HTTPD_PREFIX}/conf/httpd.conf && \
-    echo LoadModule socache_shmcb_module modules/mod_socache_shmcb.so >> ${HTTPD_PREFIX}/conf/httpd.conf && \
-    echo LoadModule ssl_module modules/mod_ssl.so >> ${HTTPD_PREFIX}/conf/httpd.conf && \
-    echo CSPFileTypes csp cls zen cxw >> ${HTTPD_PREFIX}/conf/httpd.conf && \
-    echo Include conf/extra/httpd-ssl.conf >> ${HTTPD_PREFIX}/conf/httpd.conf && \ 
-    echo Include /opt/webgateway/apache/webgateway.conf >> ${HTTPD_PREFIX}/conf/httpd.conf 
-
-COPY webgateway.conf /opt/webgateway/apache/
-COPY webgateway-entrypoint.sh /opt/webgateway/bin
-COPY server.crt /usr/local/apache2/conf/
-COPY server.key /usr/local/apache2/conf/
-COPY index.html /usr/local/apache2/htdocs/
-
-ENTRYPOINT [ "/opt/webgateway/bin/webgateway-entrypoint.sh" ]
+RUN cat /etc/apache2/mods-available/webgwfiles/webgateway.conf >> /etc/apache2/mods-available/CSP.conf &&\
+    cat /etc/apache2/mods-available/webgwfiles/CSP.ini >> ${ISC_PACKAGE_INSTALLDIR}/bin/CSP.ini && \
+    cp /etc/apache2/mods-available/webgwfiles/server.crt /etc/ssl/certs/server.crt && \
+    cp /etc/apache2/mods-available/webgwfiles/server.key /etc/ssl/private/server.key && \
+    cp /etc/apache2/sites-available/default-ssl.conf /etc/apache2/sites-available/default-ssl-bck.conf && \
+    sed -e 's/ssl-cert-snakeoil.pem/server.crt/g' /etc/apache2/sites-available/default-ssl.conf > /etc/apache2/sites-available/default-ssl2.conf && \
+    sed -e 's/ssl-cert-snakeoil.key/server.key/g' /etc/apache2/sites-available/default-ssl2.conf > /etc/apache2/sites-available/default-ssl.conf && \
+    rm /etc/apache2/sites-available/default-ssl2.conf && \
+    a2ensite default-ssl && \
+    a2enmod ssl
