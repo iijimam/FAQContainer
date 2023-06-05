@@ -125,14 +125,15 @@ do ##class(FAQ.Installer).runInstaller("Global")
 ## 4. イメージファイル、添付ファイルの移動
 
 imagesフォルダ一式、downloadsフォルダ一式を手動で以下にコピーする。
+（imagesやdownloadsディレクトリがある位置に移動した状態でのコマンド実行例）
 
 - images
     ```
-    sudo copy -r imagesがあるディレクトリ /usr/FAQContainer/config/iris/csp/faq/images
+    sudo cp -r ./images /usr/FAQContainer/config/iris/csp/faq/
     ```
 - downloads
     ```
-    sudo copy -r downloadsがあるディレクトリ /usr/FAQContainer/config/iris/csp/faq/downloads
+    sudo cp -r ./downloads /usr/FAQContainer/config/iris/csp/faq/
     ```
     
     トピック19が添付があるので、19を開いて添付が見えてればOK
@@ -140,9 +141,17 @@ imagesフォルダ一式、downloadsフォルダ一式を手動で以下にコ�
 これで完成！
 https://webservername or ip address/csp/faq/FAQ.FAQTopicSearch2.cls　にアクセスできる予定
 
-## イメージ更新《書きかけ：これではFATALエラーとなる》
+## IRISのイメージ更新
 
 IRISのコンテナにログインし、完全停止（iris stop iris）を行ってから、コンテナを破棄、イメージを削除してから、Dockerfileのイメージを書き換えてdocker-compose up -dしたらOK
+
+以下、IRISのイメージだけ更新する場合の手順
+
+Durable %SYSのディレクトリ所有者を変更しないとダメだった
+Doc:
+[https://docs.intersystems.com/iris20221/csp/docbookj/DocBook.UI.Page.cls?KEY=ADOCK#ADOCK_iris_durable_locating](https://docs.intersystems.com/iris20221/csp/docbookj/DocBook.UI.Page.cls?KEY=ADOCK#ADOCK_iris_durable_locating)
+
+> リリースノート（DP-404204）：https://docs.intersystems.com/iris20201/csp/docbook/relnotes/index.html
 
 ```
 sudo docker exec -it faq-iris bash
@@ -153,12 +162,34 @@ exit
 
 sudo docker-compose down
 
-IRISコンテナのイメージ削除
+#IRISコンテナのイメージ削除
 sudo docker rmi 11d8383d1ccc
 
-Dockerfile のイメージを新しいバージョンに変えて保存
+#ディレクトリ所有者の変更sudo chown -R 51773:51773 /usr/FAQContainer/config
+
+
+#Dockerfile のイメージを新しいバージョンに変えて保存
 
 sudo docker-compose up -d
+
+#確認
+sudo docker exec -it faq-iris bash
+
+iris list
 ```
+以下のように表示されたらOK
+```
+Configuration 'IRIS'   (default)
+        directory:    /usr/irissys/
+        versionid:    2023.1.0.229.0
+        datadir:      /opt/config/iris/
+        conf file:    iris.cpf  (SuperServer port = 1972, WebServer = 52773)
+        status:       running, since Mon Jun  5 16:57:10 2023
+        state:        ok
+        product:      InterSystems IRIS
+irisowner@irisforfaq:~$ 
+```
+
+
 
 
