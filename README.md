@@ -191,5 +191,42 @@ irisowner@irisforfaq:~$
 ```
 
 
+## WebGatewayコンテアのイメージ更新
 
+現FAQは、httpdコンテナにWebGatewayのインストールをビルド時に行ったものを利用。
+
+これを、2023.1.0からは、WebGateway用コンテナに変更。
+
+WebGateway用コンテナはこちらから入手：https://containers.intersystems.com/contents
+
+### 手順
+IRISのイメージ更新の時一緒にビルドするのがよさそう
+
+- 1) コンテナ破棄（IRISコンテナも破棄）
+
+    ```
+    sudo docker-compose down
+    ```
+
+- 2) 現WebGateway用コンテナイメージ消去
+    
+    faq-webのイメージを調べて削除
+
+    ```
+    sudo docker rmi xxx
+    ```
+
+- 3) WebGateway用Dockerfileの書き換え
+
+    [Dockerfile-WGContainer](/web/Dockerfile-WGContainer) の中身を[Dockerfile](/web/Dockerfile)にコピーして保存します。
+
+- 4) WebGateway用コンテナビルド＆開始
+
+    ```
+    sudo docker-compose up -d
+    ```
+
+    Up後、WebGateway管理画面が立ち上がるか確認（https://webservername/csp/bin/Systems/Module.cxw）
+
+    立ち上がったら、FAQを確認
 

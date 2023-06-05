@@ -4,15 +4,20 @@ WebGatewayコンテナ版（2023.1.0）への変更で修正したファイル�
 
 - Dockerfile
 
-    WebGateway用イメージを使用するように修正
+    WebGateway用イメージを使用するように修正したファイルに変更
 
     CSP.iniの中身をコンテナビルド時に追記してる（[./webgwfiles/CSP.ini](./webgwfiles/CSP.ini)を使用)
 
-    > [Dockerfile-preWGContainer](/web/Dockerfile-prevWGContainer)は、現在使用中FAQコンテナで使用しているWebGateway用コンテナ作成元。念のため保管
+    - 書き換え方
 
-- webgateway.conf
+        [Dockerfile-WGContainer](/web/Dockerfile-WGContainer) の中身をDockerfileにコピーして保存します。
 
-    以下FAQをそのまま使用（元ファイルと1か所除きほぼ一緒）
+        > [Dockerfile-preWGContainer](/web/Dockerfile-prevWGContainer)は、現在使用中FAQコンテナで使用しているWebGateway用コンテナ作成元。念のため保管
+
+
+- /web/webgwfiles/webgateway.conf
+
+    以下FAQをそのまま使用（元ファイルと1か所除きほぼ一緒）：元は`web/webgateway.conf`を使用
 
     https://faq.intersystems.co.jp/csp/faq/result.csp?DocNo=593
 
