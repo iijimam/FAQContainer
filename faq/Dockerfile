@@ -1,7 +1,7 @@
 #ARG IMAGE=intersystems/iris:2020.3.0.221.0
 #ARG IMAGE=intersystems/iris:2021.1.0.215.0
-#ARG IMAGE=intersystems/iris:2021.1.0.215.0
-ARG IMAGE=intersystems/iris:2023.1.0.229.0
+ARG IMAGE=intersystems/iris:2021.1.0.215.0
+#ARG IMAGE=intersystems/iris:2023.1.0.229.0
 FROM $IMAGE
 
 USER ${ISC_PACKAGE_MGRUSER}
